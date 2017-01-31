@@ -21,10 +21,18 @@ from sys import exit
 # list of colors to detect:
 # [lower limit], [upper limit]
 # [R,G,B]
+# boundaries = [
+# 	([0, 10, 80], [70, 70, 255]),        # blue
+#     #([17, 15, 100], [50, 56, 200]),        # blue
+# 	([70, 20, 10], [255, 70, 40]),          # orange
+# 	([10, 60, 20], [70, 100, 70])          # green
+# ]
+
 boundaries = [
-	([0, 10, 80], [70, 70, 255]),        # blue
-	([70, 20, 10], [255, 70, 40]),          # orange
-	([10, 60, 20], [70, 100, 70])          # green
+	([80, 10, 0], [255, 70, 70]),        # blue
+    #([17, 15, 100], [50, 56, 200]),        # blue
+	([10, 20, 70], [40, 70, 255]),          # orange
+	([20, 60, 10], [70, 100, 70])          # green
 ]
 
 def clustering_algorithm():
@@ -46,9 +54,8 @@ def circlesDetector(imgSource, imgOutput):
 
         # itero en cada uno de los círuclos
         for (x, y, r) in circles:
-            # print("Circle:")
-            # print(imgOutput[y,x])
             cv2.circle(imgOutput, (x, y), r, (0, 255, 0), 4) 	# dibujo cada círculo en la imagen
+        
 
 def grayTreeChanelCreator(img):
 	resolution = img.shape
@@ -64,7 +71,10 @@ def colorDetector(img):
         lower = np.array(lower, dtype="uint8")
         upper = np.array(upper, dtype="uint8")
 
-        mask = cv2.inRage(img, lower, upper)
+        mask = cv2.inRange(img, lower, upper)
+        imgOutput = cv2.bitwise_and(img, img, mask = mask)
+
+        return imgOutput
 
 def main():
     cap = cv2.VideoCapture(1)       # open comunication with cam
@@ -76,8 +86,6 @@ def main():
 
         imgDetection = frame.copy()	# tomo un frma del video y creo una copia para mantener la imagen original
 
-        imgColorDetection = frame.copy()
-        #
         # imgPixelsList = imgPixelsList.reshape((imgPixelsList.shape[0] * imgPixelsList.shape[1], 3))
         # clt = kmeans(n_clusters =3)
         # clt.fit(imgPixelsList)
@@ -90,9 +98,9 @@ def main():
 
         imgOutput = imgDetection
 
-        colorDetector(imgColorDetection)
+        imgColorDetection = colorDetector(frame)
 
-        cv2.imshow('Webcam', np.hstack([imgAconditioned,imgOutput]))           # show the frame in a window
+        cv2.imshow('Webcam', np.hstack([imgColorDetection,imgOutput]))           # show the frame in a window
         if cv2.waitKey(1) & 0xFF == ord('q'):
         	break
 
